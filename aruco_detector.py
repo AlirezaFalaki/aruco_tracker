@@ -1,35 +1,46 @@
 import cv2
 import numpy as np
 from cv2 import aruco
-from filess_for_detection.object_detector import *
-from scanner import mapper
+from scanner import  mapper
 
 # انواع مارکر ساپورت شده در opencv
 ARUCO_DICT = {
-	# "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-	# "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-	# "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-	# "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-	#"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-	# "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-	# "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-	# # "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
-	# "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-	# "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-	# "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-	# "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-	#"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-	# "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+	#  "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+	#  "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+	#  "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+	#  "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+	#  "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+	#  "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+	#  "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+	#  "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+	#  "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+	#  "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+	#  "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+	#  "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+	# "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+	#  "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
 	 "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-	# "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
-	# "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
-	# "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
-	# "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
-	# "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
-	# "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+	 # "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+	 # "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+	 # "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+	 # "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+	 # "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+	 # "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 
 #
+def edge_detector(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, img = cv2.threshold(gray, 190, 255, cv2.THRESH_BINARY)
+    blurred = cv2.GaussianBlur(img, (3, 3), 0)
+    canny = cv2.Canny(blurred, 70, 215)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    dilated = cv2.dilate(canny, kernel)
+    cv2.imshow('canny',dilated)
+    return dilated
+
+
+
 class Marker:
 	def __init__(self,img,canny):
 		self.Img = img
@@ -63,10 +74,10 @@ class Marker:
 				break
 		approx = mapper.mapp(target)  # find endpoints of the sheet
 
-		pts = np.float32([[0, 0], [1200, 0], [1200, 800], [0, 800]])  # map to 800*800 target window
+		pts = np.float32([[0, 0], [1000, 0], [1000, 700], [0, 700]])  # map to 800*800 target window
 
 		op = cv2.getPerspectiveTransform(approx, pts)  # get the top or bird eye view effect
-		dst = cv2.warpPerspective(orig, op, (1200, 800))
+		dst = cv2.warpPerspective(orig, op, (1000, 700))
 
 
 		mask = np.zeros(orig.shape[:2], dtype=orig.dtype)
@@ -81,11 +92,12 @@ class Marker:
 		result = cv2.bitwise_and(orig, orig, mask=mask)
 		#
 		# # show image
-		cv2.imshow("Result", result)
-		cv2.imshow("Im", orig)
+		#cv2.imshow("Result", result)
+		#cv2.imshow("Im", orig)
 		#print(dst.shape)
 		#cv2.imshow("Scanned", dst)
 		#return self.Img
+		cv2.imwrite("perspective.jpg" , dst)
 		return dst
 
 
@@ -134,7 +146,8 @@ class Marker:
 		# cv2.imshow('centers',gray)
 		# cv2.moveWindow('centers', 0, 0)
 		return np.array(li).squeeze()
-
+	def tracker(self , image , location):
+		cv2.circle(image ,(location[0],location[1]) ,2 ,  (0 , 0 , 255) , -1 )
 
 
 #پیداکردن طول و عرض و ارتفاع
