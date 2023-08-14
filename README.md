@@ -1,4 +1,4 @@
 # aruco_tracker
 hello guys 
-in this repository we work on aruco tracking
+in this repository we work on aruco tracking \n
 aruco is a such type of marker that have an special mudule in opencv 
